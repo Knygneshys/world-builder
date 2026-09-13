@@ -11,7 +11,7 @@ public class CharacterSeeder : ISeeder
         if (await context.Characters.AnyAsync()) return;
 
         var settlements = await context.Settlements.ToListAsync();
-        var settlementId = new Guid("92cd7639-fd42-4003-b09b-d94fdbf70be5");
+        var skyholdId = new Guid("92cd7639-fd42-4003-b09b-d94fdbf70be5");
         
         Character[] characters =
         [
@@ -25,7 +25,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulGood,
                 Description = "A veteran guardian who protects the northern roads from raiders.",
-                SettlementId =  settlements.First().Id
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -37,7 +37,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Female,
                 Alignment = Alignment.NeutralGood,
                 Description = "A quiet ranger who maps forgotten paths through ancient forests.",
-                SettlementId =  settlements.First().Id
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -49,7 +49,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulNeutral,
                 Description = "A meticulous smith whose blades are prized across the realm.",
-                SettlementId =  settlements.First().Id
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -61,7 +61,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
                 Description = "A cheerful courier who slips through borders no army can cross.",
-                SettlementId =  settlements.First().Id
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -73,7 +73,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulGood,
                 Description = "A disciplined knight seeking redemption for his fallen clan.",
-                SettlementId =  settlements.First().Id
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -260,24 +260,24 @@ public class CharacterSeeder : ISeeder
                 Id = new Guid("ccdf42f5-8c28-4a5b-a121-e39588043edb"),
                 Name = "Mira Vell",
                 Alias = "Silverhand",
-                Species = Species.HalfElf,
+                Species = Species.Human,
                 Age = 39,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticNeutral,
                 Description = "A diplomat who carries unofficial messages between rival moonlit courts.",
-                SettlementId =  settlementId
+                SettlementId = skyholdId
             },
             new Character
             {
                 Id = new Guid("bfb9827e-ab01-433b-bc35-f5427118ef10"),
                 Name = "Korren Mossback",
                 Alias = null,
-                Species = Species.HalfOrc,
+                Species = Species.Dwarf,
                 Age = 44,
                 Gender = Gender.Male,
                 Alignment = Alignment.TrueNeutral,
                 Description = "A marsh guide who can find firm ground where maps show only water.",
-                SettlementId =  settlementId
+                SettlementId = skyholdId
             },
             new Character
             {
@@ -289,7 +289,7 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
                 Description = "A railway mechanic who turns discarded machine parts into rescue tools.",
-                SettlementId =  settlementId
+                SettlementId = skyholdId
             }
         ];
 

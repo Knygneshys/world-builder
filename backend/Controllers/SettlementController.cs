@@ -61,6 +61,32 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         return settlement is null ? NotFound() : Ok(settlement);
     }
 
+    [HttpGet("{id:guid}/predominant-species")]
+    public async Task<ActionResult<PredominantSpeciesResponseDto>> GetPredominantSpecies(Guid id)
+    {
+        var cityName = await context.Settlements.AsNoTracking()
+            .Where(settlement => settlement.Id == id)
+            .Select(settlement => settlement.Name)
+            .FirstOrDefaultAsync();
+        if (cityName is null) return NotFound();
+
+        var speciesCounts = await context.Characters.AsNoTracking()
+            .Where(character => character.SettlementId == id)
+            .GroupBy(character => character.Species)
+            .Select(group => new { Species = group.Key, Count = group.Count() })
+            .ToListAsync();
+        if (speciesCounts.Count == 0) return NotFound("No characters found!");
+
+        var maximum = speciesCounts.Max(item => item.Count);
+        var species = speciesCounts
+            .Where(item => item.Count == maximum)
+            .Select(item => item.Species)
+            .Order()
+            .ToArray();
+
+        return Ok(new PredominantSpeciesResponseDto(cityName, species));
+    }
+
     [HttpPost]
     public async Task<ActionResult<SettlementResponseDto>> Create(SettlementDto request)
     {
