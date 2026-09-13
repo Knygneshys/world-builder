@@ -1,6 +1,7 @@
 using backend.Data;
 using backend.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("WorldBuilder");
@@ -13,7 +14,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
 Console.WriteLine("WorldBuilder connection string loaded successfully.");
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<WorldBuilderContext>(options =>
     options.UseSqlServer(connectionString));

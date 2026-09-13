@@ -20,10 +20,10 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         [FromQuery] Alignment? alignment,
         [FromQuery] int page = 1)
     {
-        if (page < 1 || page > int.MaxValue / PageSize ||
-            species is { } speciesValue && !Enum.IsDefined(speciesValue) ||
-            gender is { } genderValue && !Enum.IsDefined(genderValue) ||
-            alignment is { } alignmentValue && !Enum.IsDefined(alignmentValue))
+        if (page < 1 ||
+            species.HasValue && !Enum.IsDefined(species.Value) ||
+            gender.HasValue && !Enum.IsDefined(gender.Value) ||
+            alignment.HasValue && !Enum.IsDefined(alignment.Value))
         {
             return BadRequest();
         }
