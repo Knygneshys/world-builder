@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Data.DTOs;
 using backend.Data.Entities;
 using backend.Data.Entities.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -40,8 +41,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             .ToListAsync());
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<Character>> Get(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Character>> Get(Guid id)
     {
         var character = await context.Characters.AsNoTracking()
             .FirstOrDefaultAsync(character => character.Id == id);
@@ -50,12 +51,13 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Character>> Create(CharacterRequest request)
+    public async Task<ActionResult<Character>> Create(CharacterCreateDto request)
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
         var character = new Character
         {
+            Id = Guid.NewGuid(),
             Name = request.Name.Trim(),
             Alias = request.Alias,
             Species = request.Species,
@@ -71,8 +73,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         return CreatedAtAction(nameof(Get), new { character.Id }, character);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, CharacterRequest request)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, CharacterCreateDto request)
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
@@ -91,8 +93,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
     {
         var character = await context.Characters.FindAsync(id);
         if (character is null) return NotFound();
@@ -102,7 +104,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         return NoContent();
     }
 
-    private static bool IsInvalid(CharacterRequest request) =>
+    private static bool IsInvalid(CharacterCreateDto request) =>
         string.IsNullOrWhiteSpace(request.Name) ||
         string.IsNullOrWhiteSpace(request.Description) ||
         request.Age < 0 ||
@@ -110,12 +112,3 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         !Enum.IsDefined(request.Gender) ||
         !Enum.IsDefined(request.Alignment);
 }
-
-public record CharacterRequest(
-    string Name,
-    string? Alias,
-    Species Species,
-    int Age,
-    Gender Gender,
-    Alignment Alignment,
-    string Description);

@@ -2,7 +2,7 @@ namespace backend.Data.Entities;
 
 public class World
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public required string Name { get; set; }
     public required string Description { get; set; }
     public ICollection<Settlement> Settlements { get; set; } = [];
