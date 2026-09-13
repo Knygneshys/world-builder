@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,12 +17,17 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<WorldBuilderContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.AddScoped<ISeeder, CharacterSeeder>();
+builder.Services.AddScoped<ApplicationSeeder>();
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    await scope.ServiceProvider.GetRequiredService<WorldBuilderContext>().Database.MigrateAsync();
+    var context = scope.ServiceProvider.GetRequiredService<WorldBuilderContext>();
+    await context.Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<ApplicationSeeder>()
+        .SeedAllAsync(context, scope.ServiceProvider);
 }
 
 // Configure the HTTP request pipeline.

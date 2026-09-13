@@ -35,7 +35,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         if (alignment.HasValue) query = query.Where(character => character.Alignment == alignment);
 
         return Ok(await query
-            .OrderBy(character => character.Id)
+            .OrderBy(character => character.Name)
             .Skip((page - 1) * PageSize)
             .Take(PageSize)
             .ToListAsync());
