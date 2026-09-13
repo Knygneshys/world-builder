@@ -10,13 +10,7 @@ public class CharacterSeeder : ISeeder
     {
         if (await context.Characters.AnyAsync()) return;
 
-        Guid[] settlementIds =
-        [
-            new("92cd7639-fd42-4003-b09b-d94fdbf70be5"),
-            new("2ac6bbdc-aea7-4100-8b2c-9205c1f8f8f6"),
-            new("602ea5d0-7811-4c79-a96c-a27ec45c20a2"),
-            new("61d482d0-e55a-40db-9276-0fc9df8e40c1")
-        ];
+        var settlements = await context.Settlements.ToListAsync();
 
         Character[] characters =
         [
@@ -29,7 +23,8 @@ public class CharacterSeeder : ISeeder
                 Age = 42,
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulGood,
-                Description = "A veteran guardian who protects the northern roads from raiders."
+                Description = "A veteran guardian who protects the northern roads from raiders.",
+                SettlementId =  settlements.First().Id
             },
             new Character
             {
@@ -40,7 +35,8 @@ public class CharacterSeeder : ISeeder
                 Age = 126,
                 Gender = Gender.Female,
                 Alignment = Alignment.NeutralGood,
-                Description = "A quiet ranger who maps forgotten paths through ancient forests."
+                Description = "A quiet ranger who maps forgotten paths through ancient forests.",
+                SettlementId =  settlements.First().Id
             },
             new Character
             {
@@ -51,7 +47,8 @@ public class CharacterSeeder : ISeeder
                 Age = 88,
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulNeutral,
-                Description = "A meticulous smith whose blades are prized across the realm."
+                Description = "A meticulous smith whose blades are prized across the realm.",
+                SettlementId =  settlements.First().Id
             },
             new Character
             {
@@ -62,7 +59,8 @@ public class CharacterSeeder : ISeeder
                 Age = 31,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
-                Description = "A cheerful courier who slips through borders no army can cross."
+                Description = "A cheerful courier who slips through borders no army can cross.",
+                SettlementId =  settlements.First().Id
             },
             new Character
             {
@@ -73,7 +71,8 @@ public class CharacterSeeder : ISeeder
                 Age = 37,
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulGood,
-                Description = "A disciplined knight seeking redemption for his fallen clan."
+                Description = "A disciplined knight seeking redemption for his fallen clan.",
+                SettlementId =  settlements.First().Id
             },
             new Character
             {
@@ -84,7 +83,8 @@ public class CharacterSeeder : ISeeder
                 Age = 64,
                 Gender = Gender.Androgynous,
                 Alignment = Alignment.ChaoticNeutral,
-                Description = "An excitable inventor whose devices work almost as often as intended."
+                Description = "An excitable inventor whose devices work almost as often as intended.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -95,7 +95,8 @@ public class CharacterSeeder : ISeeder
                 Age = 54,
                 Gender = Gender.Female,
                 Alignment = Alignment.NeutralGood,
-                Description = "A wandering healer who serves villages overlooked by the crown."
+                Description = "A wandering healer who serves villages overlooked by the crown.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -106,7 +107,8 @@ public class CharacterSeeder : ISeeder
                 Age = 29,
                 Gender = Gender.Male,
                 Alignment = Alignment.TrueNeutral,
-                Description = "A reserved caravan guard known for keeping every promise."
+                Description = "A reserved caravan guard known for keeping every promise.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -117,7 +119,8 @@ public class CharacterSeeder : ISeeder
                 Age = 33,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
-                Description = "A sharp-tongued chronicler who exposes corrupt nobles."
+                Description = "A sharp-tongued chronicler who exposes corrupt nobles.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -128,7 +131,8 @@ public class CharacterSeeder : ISeeder
                 Age = 51,
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulNeutral,
-                Description = "A calculating guild treasurer who values order above friendship."
+                Description = "A calculating guild treasurer who values order above friendship.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -139,7 +143,8 @@ public class CharacterSeeder : ISeeder
                 Age = 203,
                 Gender = Gender.Male,
                 Alignment = Alignment.TrueNeutral,
-                Description = "An aloof astrologer who reads omens in the movement of distant stars."
+                Description = "An aloof astrologer who reads omens in the movement of distant stars.",
+                SettlementId =  settlements[1].Id
             },
             new Character
             {
@@ -150,7 +155,8 @@ public class CharacterSeeder : ISeeder
                 Age = 117,
                 Gender = Gender.Female,
                 Alignment = Alignment.NeutralGood,
-                Description = "A renowned brewer who offers shelter to travelers in need."
+                Description = "A renowned brewer who offers shelter to travelers in need.",
+                SettlementId =  settlements[2].Id
             },
             new Character
             {
@@ -161,7 +167,8 @@ public class CharacterSeeder : ISeeder
                 Age = 45,
                 Gender = Gender.Male,
                 Alignment = Alignment.ChaoticNeutral,
-                Description = "A riverboat gambler with a talent for escaping impossible debts."
+                Description = "A riverboat gambler with a talent for escaping impossible debts.",
+                SettlementId =  settlements[2].Id
             },
             new Character
             {
@@ -172,7 +179,8 @@ public class CharacterSeeder : ISeeder
                 Age = 61,
                 Gender = Gender.Androgynous,
                 Alignment = Alignment.LawfulNeutral,
-                Description = "A patient magistrate who settles disputes in the mountain provinces."
+                Description = "A patient magistrate who settles disputes in the mountain provinces.",
+                SettlementId =  settlements[2].Id
             },
             new Character
             {
@@ -183,7 +191,8 @@ public class CharacterSeeder : ISeeder
                 Age = 79,
                 Gender = Gender.Female,
                 Alignment = Alignment.LawfulGood,
-                Description = "A practical engineer who builds pumps and mills for poor settlements."
+                Description = "A practical engineer who builds pumps and mills for poor settlements.",
+                SettlementId =  settlements[2].Id
             },
             new Character
             {
@@ -194,7 +203,8 @@ public class CharacterSeeder : ISeeder
                 Age = 72,
                 Gender = Gender.Male,
                 Alignment = Alignment.NeutralEvil,
-                Description = "A court musician who trades secrets to the highest bidder."
+                Description = "A court musician who trades secrets to the highest bidder.",
+                SettlementId =  settlements[3].Id
             },
             new Character
             {
@@ -205,7 +215,8 @@ public class CharacterSeeder : ISeeder
                 Age = 36,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
-                Description = "A former arena fighter who now frees captives and hunted outcasts."
+                Description = "A former arena fighter who now frees captives and hunted outcasts.",
+                SettlementId =  settlements[3].Id
             },
             new Character
             {
@@ -216,7 +227,8 @@ public class CharacterSeeder : ISeeder
                 Age = 46,
                 Gender = Gender.Female,
                 Alignment = Alignment.TrueNeutral,
-                Description = "A fire-reader who warns travelers when the ash fields are about to shift."
+                Description = "A fire-reader who warns travelers when the ash fields are about to shift.",
+                SettlementId =  settlements[3].Id
             },
             new Character
             {
@@ -227,7 +239,8 @@ public class CharacterSeeder : ISeeder
                 Age = 58,
                 Gender = Gender.Male,
                 Alignment = Alignment.LawfulGood,
-                Description = "A watch captain who keeps the fortress gates open to refugees."
+                Description = "A watch captain who keeps the fortress gates open to refugees.",
+                SettlementId =  settlements[3].Id
             },
             new Character
             {
@@ -238,7 +251,8 @@ public class CharacterSeeder : ISeeder
                 Age = 164,
                 Gender = Gender.Androgynous,
                 Alignment = Alignment.NeutralGood,
-                Description = "A crystal singer who repairs fractures in the forest with resonant hymns."
+                Description = "A crystal singer who repairs fractures in the forest with resonant hymns.",
+                SettlementId =  settlements[4].Id
             },
             new Character
             {
@@ -249,7 +263,8 @@ public class CharacterSeeder : ISeeder
                 Age = 39,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticNeutral,
-                Description = "A diplomat who carries unofficial messages between rival moonlit courts."
+                Description = "A diplomat who carries unofficial messages between rival moonlit courts.",
+                SettlementId =  settlements[4].Id
             },
             new Character
             {
@@ -260,7 +275,8 @@ public class CharacterSeeder : ISeeder
                 Age = 44,
                 Gender = Gender.Male,
                 Alignment = Alignment.TrueNeutral,
-                Description = "A marsh guide who can find firm ground where maps show only water."
+                Description = "A marsh guide who can find firm ground where maps show only water.",
+                SettlementId =  settlements[4].Id
             },
             new Character
             {
@@ -271,14 +287,10 @@ public class CharacterSeeder : ISeeder
                 Age = 71,
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
-                Description = "A railway mechanic who turns discarded machine parts into rescue tools."
+                Description = "A railway mechanic who turns discarded machine parts into rescue tools.",
+                SettlementId =  settlements[4].Id
             }
         ];
-
-        for (var i = 0; i < characters.Length; i++)
-        {
-            characters[i].SettlementId = settlementIds[i < 3 ? 0 : i < 7 ? 1 : i < 12 ? 2 : 3];
-        }
 
         context.Characters.AddRange(characters);
         await context.SaveChangesAsync();
