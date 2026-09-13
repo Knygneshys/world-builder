@@ -1,4 +1,4 @@
-namespace backend.Entities.Enums;
+namespace backend.Data.Entities.Enums;
 
 public enum Species
 {

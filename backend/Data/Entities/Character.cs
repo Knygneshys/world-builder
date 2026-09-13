@@ -1,9 +1,10 @@
-using backend.Entities.Enums;
+using backend.Data.Entities.Enums;
 
-namespace backend.Entities;
+namespace backend.Data.Entities;
 
 public class Character
 {
+    public int Id { get; set; }
     public required string Name { get; set; }
     public string? Alias { get; set; }
     public Species Species { get; set; }
