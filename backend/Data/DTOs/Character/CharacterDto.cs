@@ -1,6 +1,6 @@
 using backend.Data.Entities.Enums;
 
-namespace backend.Data.DTOs;
+namespace backend.Data.DTOs.Character;
 
 public record CharacterDto(
     string Name,

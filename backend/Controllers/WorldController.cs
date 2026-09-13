@@ -1,5 +1,5 @@
 using backend.Data;
-using backend.Data.DTOs;
+using backend.Data.DTOs.World;
 using backend.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     private const int PageSize = 10;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<World>>> List([FromQuery] int page = 1)
+    public async Task<ActionResult<IEnumerable<WorldResponseDto>>> List([FromQuery] int page = 1)
     {
         if (page < 1) return BadRequest();
 
@@ -21,20 +21,22 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
             .OrderBy(world => world.Name)
             .Skip((page - 1) * PageSize)
             .Take(PageSize)
+            .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
             .ToListAsync());
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<World>> Get(Guid id)
+    public async Task<ActionResult<WorldResponseDto>> Get(Guid id)
     {
         var world = await context.Worlds.AsNoTracking()
+            .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
             .FirstOrDefaultAsync(world => world.Id == id);
 
         return world is null ? NotFound() : Ok(world);
     }
 
     [HttpPost]
-    public async Task<ActionResult<World>> Create(WorldDto request)
+    public async Task<ActionResult<WorldResponseDto>> Create(WorldDto request)
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
@@ -48,7 +50,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
         context.Worlds.Add(world);
         await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Get), new { world.Id }, world);
+        return CreatedAtAction(nameof(Get), new { world.Id }, ToResponse(world));
     }
 
     [HttpPut("{id:guid}")]
@@ -63,7 +65,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
         world.Description = request.Description.Trim();
 
         await context.SaveChangesAsync();
-        return Ok(world);
+        return Ok(ToResponse(world));
     }
 
     [HttpDelete("{id:guid}")]
@@ -80,4 +82,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     private static bool IsInvalid(WorldDto request) =>
         string.IsNullOrWhiteSpace(request.Name) ||
         string.IsNullOrWhiteSpace(request.Description);
+
+    private static WorldResponseDto ToResponse(World world) =>
+        new(world.Id, world.Name, world.Description);
 }

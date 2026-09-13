@@ -1,5 +1,5 @@
 using backend.Data;
-using backend.Data.DTOs;
+using backend.Data.DTOs.Character;
 using backend.Data.Entities;
 using backend.Data.Entities.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     private const int PageSize = 10;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Character>>> List(
+    public async Task<ActionResult<IEnumerable<CharacterResponseDto>>> List(
         [FromQuery] Species? species,
         [FromQuery] Gender? gender,
         [FromQuery] Alignment? alignment,
@@ -38,24 +38,48 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             .OrderBy(character => character.Name)
             .Skip((page - 1) * PageSize)
             .Take(PageSize)
+            .Select(character => new CharacterResponseDto(
+                character.Id,
+                character.Name,
+                character.Alias,
+                character.Species,
+                character.Age,
+                character.Gender,
+                character.Alignment,
+                character.Description,
+                character.Settlement.Name))
             .ToListAsync());
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Character>> Get(Guid id)
+    public async Task<ActionResult<CharacterResponseDto>> Get(Guid id)
     {
         var character = await context.Characters.AsNoTracking()
+            .Select(character => new CharacterResponseDto(
+                character.Id,
+                character.Name,
+                character.Alias,
+                character.Species,
+                character.Age,
+                character.Gender,
+                character.Alignment,
+                character.Description,
+                character.Settlement.Name))
             .FirstOrDefaultAsync(character => character.Id == id);
 
         return character is null ? NotFound() : Ok(character);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Character>> Create(CharacterDto request)
+    public async Task<ActionResult<CharacterResponseDto>> Create(CharacterDto request)
     {
-        var settlementExists = await context.Settlements.AnyAsync(settlement => settlement.Id == request.SettlementId);
-        if (IsInvalid(request) || !settlementExists)
-            return UnprocessableEntity();
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var settlementName = await context.Settlements
+            .Where(settlement => settlement.Id == request.SettlementId)
+            .Select(settlement => settlement.Name)
+            .FirstOrDefaultAsync();
+        if (settlementName is null) return UnprocessableEntity();
 
         var character = new Character
         {
@@ -73,15 +97,19 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         context.Characters.Add(character);
         await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Get), new { character.Id }, character);
+        return CreatedAtAction(nameof(Get), new { character.Id }, ToResponse(character, settlementName));
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(CharacterDto request, Guid id)
     {
-        var settlementExists = await context.Settlements.AnyAsync(settlement => settlement.Id == request.SettlementId);
-        if (IsInvalid(request) || !settlementExists)
-            return UnprocessableEntity();
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var settlementName = await context.Settlements
+            .Where(settlement => settlement.Id == request.SettlementId)
+            .Select(settlement => settlement.Name)
+            .FirstOrDefaultAsync();
+        if (settlementName is null) return UnprocessableEntity();
 
         var character = await context.Characters.FindAsync(id);
         if (character is null) return NotFound();
@@ -96,7 +124,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         character.SettlementId = request.SettlementId;
 
         await context.SaveChangesAsync();
-        return Ok(character);
+        return Ok(ToResponse(character, settlementName));
     }
 
     [HttpDelete("{id:guid}")]
@@ -117,4 +145,16 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         !Enum.IsDefined(request.Species) ||
         !Enum.IsDefined(request.Gender) ||
         !Enum.IsDefined(request.Alignment);
+
+    private static CharacterResponseDto ToResponse(Character character, string settlementName) =>
+        new(
+            character.Id,
+            character.Name,
+            character.Alias,
+            character.Species,
+            character.Age,
+            character.Gender,
+            character.Alignment,
+            character.Description,
+            settlementName);
 }

@@ -1,5 +1,5 @@
 using backend.Data;
-using backend.Data.DTOs;
+using backend.Data.DTOs.Settlement;
 using backend.Data.Entities;
 using backend.Data.Entities.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +14,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     private const int PageSize = 10;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Settlement>>> List(
+    public async Task<ActionResult<IEnumerable<SettlementResponseDto>>> List(
         [FromQuery] SettlementType? type,
         [FromQuery] int? population,
         [FromQuery] int page = 1)
@@ -35,24 +35,42 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
             .OrderBy(settlement => settlement.Name)
             .Skip((page - 1) * PageSize)
             .Take(PageSize)
+            .Select(settlement => new SettlementResponseDto(
+                settlement.Id,
+                settlement.Name,
+                settlement.Type,
+                settlement.Description,
+                settlement.Population,
+                settlement.World.Name))
             .ToListAsync());
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Settlement>> Get(Guid id)
+    public async Task<ActionResult<SettlementResponseDto>> Get(Guid id)
     {
         var settlement = await context.Settlements.AsNoTracking()
+            .Select(settlement => new SettlementResponseDto(
+                settlement.Id,
+                settlement.Name,
+                settlement.Type,
+                settlement.Description,
+                settlement.Population,
+                settlement.World.Name))
             .FirstOrDefaultAsync(settlement => settlement.Id == id);
 
         return settlement is null ? NotFound() : Ok(settlement);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Settlement>> Create(SettlementDto request)
+    public async Task<ActionResult<SettlementResponseDto>> Create(SettlementDto request)
     {
-        var isWorldInDatabase = await context.Worlds.AnyAsync(world => world.Id == request.WorldId);
-        if (IsInvalid(request) || !isWorldInDatabase)
-            return UnprocessableEntity();
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var worldName = await context.Worlds
+            .Where(world => world.Id == request.WorldId)
+            .Select(world => world.Name)
+            .FirstOrDefaultAsync();
+        if (worldName is null) return UnprocessableEntity();
 
         var settlement = new Settlement
         {
@@ -68,14 +86,19 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         context.Settlements.Add(settlement);
         await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Get), new { settlement.Id }, settlement);
+        return CreatedAtAction(nameof(Get), new { settlement.Id }, ToResponse(settlement, worldName));
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(SettlementDto request, Guid id)
     {
-        if (IsInvalid(request) || !await context.Worlds.AnyAsync(world => world.Id == request.WorldId))
-            return UnprocessableEntity();
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var worldName = await context.Worlds
+            .Where(world => world.Id == request.WorldId)
+            .Select(world => world.Name)
+            .FirstOrDefaultAsync();
+        if (worldName is null) return UnprocessableEntity();
 
         var settlement = await context.Settlements.FindAsync(id);
         if (settlement is null) return NotFound();
@@ -87,7 +110,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         settlement.WorldId = request.WorldId;
 
         await context.SaveChangesAsync();
-        return Ok(settlement);
+        return Ok(ToResponse(settlement, worldName));
     }
 
     [HttpDelete("{id:guid}")]
@@ -106,4 +129,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         string.IsNullOrWhiteSpace(request.Description) ||
         request.Population < 0 ||
         !Enum.IsDefined(request.Type);
+
+    private static SettlementResponseDto ToResponse(Settlement settlement, string worldName) =>
+        new(settlement.Id, settlement.Name, settlement.Type, settlement.Description, settlement.Population, worldName);
 }

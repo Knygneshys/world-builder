@@ -1,10 +1,11 @@
 using backend.Data.Entities.Enums;
 
-namespace backend.Data.DTOs;
+namespace backend.Data.DTOs.Settlement;
 
-public record SettlementDto(
+public record SettlementResponseDto(
+    Guid Id,
     string Name,
     SettlementType Type,
     string Description,
     int Population,
-    Guid WorldId);
+    string WorldName);
