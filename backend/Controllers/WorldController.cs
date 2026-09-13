@@ -1,4 +1,5 @@
 using backend.Data;
+using backend.Data.DTOs.Character;
 using backend.Data.DTOs.World;
 using backend.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,31 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
             .FirstOrDefaultAsync(world => world.Id == id);
 
         return world is null ? NotFound() : Ok(world);
+    }
+
+    [HttpGet("{worldId:guid}/settlements/{settlementId:guid}/characters")]
+    public async Task<ActionResult<IEnumerable<CharacterResponseDto>>> ListSettlementCharacters(
+        Guid worldId,
+        Guid settlementId)
+    {
+        var characters = await context.Settlements.AsNoTracking()
+            .Where(settlement => settlement.Id == settlementId && settlement.WorldId == worldId)
+            .Select(settlement => settlement.Characters
+                .OrderBy(character => character.Name)
+                .Select(character => new CharacterResponseDto(
+                    character.Id,
+                    character.Name,
+                    character.Alias,
+                    character.Species,
+                    character.Age,
+                    character.Gender,
+                    character.Alignment,
+                    character.Description,
+                    settlement.Name))
+                .ToList())
+            .FirstOrDefaultAsync();
+
+        return characters is null ? NotFound() : Ok(characters);
     }
 
     [HttpPost]
