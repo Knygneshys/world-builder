@@ -2,7 +2,7 @@ using backend.Data.Entities.Enums;
 
 namespace backend.Data.DTOs;
 
-public record CharacterCreateDto(
+public record CharacterDto(
     string Name,
     string? Alias,
     Species Species,

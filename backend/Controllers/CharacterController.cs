@@ -51,7 +51,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Character>> Create(CharacterCreateDto request)
+    public async Task<ActionResult<Character>> Create(CharacterDto request)
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
@@ -74,7 +74,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, CharacterCreateDto request)
+    public async Task<IActionResult> Update(CharacterDto request, Guid id)
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
@@ -90,7 +90,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         character.Description = request.Description.Trim();
 
         await context.SaveChangesAsync();
-        return NoContent();
+        return Ok(character);
     }
 
     [HttpDelete("{id:guid}")]
@@ -104,7 +104,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         return NoContent();
     }
 
-    private static bool IsInvalid(CharacterCreateDto request) =>
+    private static bool IsInvalid(CharacterDto request) =>
         string.IsNullOrWhiteSpace(request.Name) ||
         string.IsNullOrWhiteSpace(request.Description) ||
         request.Age < 0 ||
