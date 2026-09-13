@@ -1,0 +1,121 @@
+using backend.Data;
+using backend.Data.Entities;
+using backend.Data.Entities.Enums;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace backend.Controllers;
+
+[ApiController]
+[Route("api/characters")]
+public class CharacterController(WorldBuilderContext context) : ControllerBase
+{
+    private const int PageSize = 10;
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Character>>> List(
+        [FromQuery] Species? species,
+        [FromQuery] Gender? gender,
+        [FromQuery] Alignment? alignment,
+        [FromQuery] int page = 1)
+    {
+        if (page < 1 || page > int.MaxValue / PageSize ||
+            species is { } speciesValue && !Enum.IsDefined(speciesValue) ||
+            gender is { } genderValue && !Enum.IsDefined(genderValue) ||
+            alignment is { } alignmentValue && !Enum.IsDefined(alignmentValue))
+        {
+            return BadRequest();
+        }
+
+        var query = context.Characters.AsNoTracking();
+
+        if (species.HasValue) query = query.Where(character => character.Species == species);
+        if (gender.HasValue) query = query.Where(character => character.Gender == gender);
+        if (alignment.HasValue) query = query.Where(character => character.Alignment == alignment);
+
+        return Ok(await query
+            .OrderBy(character => character.Id)
+            .Skip((page - 1) * PageSize)
+            .Take(PageSize)
+            .ToListAsync());
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Character>> Get(int id)
+    {
+        var character = await context.Characters.AsNoTracking()
+            .FirstOrDefaultAsync(character => character.Id == id);
+
+        return character is null ? NotFound() : Ok(character);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Character>> Create(CharacterRequest request)
+    {
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var character = new Character
+        {
+            Name = request.Name.Trim(),
+            Alias = request.Alias,
+            Species = request.Species,
+            Age = request.Age,
+            Gender = request.Gender,
+            Alignment = request.Alignment,
+            Description = request.Description.Trim()
+        };
+
+        context.Characters.Add(character);
+        await context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(Get), new { character.Id }, character);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, CharacterRequest request)
+    {
+        if (IsInvalid(request)) return UnprocessableEntity();
+
+        var character = await context.Characters.FindAsync(id);
+        if (character is null) return NotFound();
+
+        character.Name = request.Name.Trim();
+        character.Alias = request.Alias;
+        character.Species = request.Species;
+        character.Age = request.Age;
+        character.Gender = request.Gender;
+        character.Alignment = request.Alignment;
+        character.Description = request.Description.Trim();
+
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var character = await context.Characters.FindAsync(id);
+        if (character is null) return NotFound();
+
+        context.Characters.Remove(character);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    private static bool IsInvalid(CharacterRequest request) =>
+        string.IsNullOrWhiteSpace(request.Name) ||
+        string.IsNullOrWhiteSpace(request.Description) ||
+        request.Age < 0 ||
+        !Enum.IsDefined(request.Species) ||
+        !Enum.IsDefined(request.Gender) ||
+        !Enum.IsDefined(request.Alignment);
+}
+
+public record CharacterRequest(
+    string Name,
+    string? Alias,
+    Species Species,
+    int Age,
+    Gender Gender,
+    Alignment Alignment,
+    string Description);
