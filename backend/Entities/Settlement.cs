@@ -1,0 +1,12 @@
+using backend.Entities.Enums;
+
+namespace backend.Entities;
+
+public class Settlement
+{
+    public required string Name { get; set; }
+    public SettlementType Type { get; set; }
+    public required string Description { get; set; }
+    public int Population { get; set; }
+    public required World World { get; set; }
+}
