@@ -9,4 +9,5 @@ public record CharacterDto(
     int Age,
     Gender Gender,
     Alignment Alignment,
-    string Description);
+    string Description,
+    Guid SettlementId);

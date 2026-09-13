@@ -53,7 +53,9 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Character>> Create(CharacterDto request)
     {
-        if (IsInvalid(request)) return UnprocessableEntity();
+        var settlementExists = await context.Settlements.AnyAsync(settlement => settlement.Id == request.SettlementId);
+        if (IsInvalid(request) || !settlementExists)
+            return UnprocessableEntity();
 
         var character = new Character
         {
@@ -64,7 +66,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             Age = request.Age,
             Gender = request.Gender,
             Alignment = request.Alignment,
-            Description = request.Description.Trim()
+            Description = request.Description.Trim(),
+            SettlementId = request.SettlementId
         };
 
         context.Characters.Add(character);
@@ -76,7 +79,9 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(CharacterDto request, Guid id)
     {
-        if (IsInvalid(request)) return UnprocessableEntity();
+        var settlementExists = await context.Settlements.AnyAsync(settlement => settlement.Id == request.SettlementId);
+        if (IsInvalid(request) || !settlementExists)
+            return UnprocessableEntity();
 
         var character = await context.Characters.FindAsync(id);
         if (character is null) return NotFound();
@@ -88,6 +93,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         character.Gender = request.Gender;
         character.Alignment = request.Alignment;
         character.Description = request.Description.Trim();
+        character.SettlementId = request.SettlementId;
 
         await context.SaveChangesAsync();
         return Ok(character);

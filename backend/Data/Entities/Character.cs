@@ -12,4 +12,6 @@ public class Character
     public Gender Gender { get; set; }
     public Alignment Alignment { get; set; }
     public required string Description { get; set; }
+    public Guid SettlementId { get; set; }
+    public Settlement Settlement { get; set; } = null!;
 }

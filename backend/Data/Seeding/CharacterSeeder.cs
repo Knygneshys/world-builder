@@ -10,7 +10,13 @@ public class CharacterSeeder : ISeeder
     {
         if (await context.Characters.AnyAsync()) return;
 
-        context.Characters.AddRange(
+        var settlementId = await context.Settlements
+            .Select(settlement => (Guid?)settlement.Id)
+            .FirstOrDefaultAsync();
+        if (settlementId is null) return;
+
+        Character[] characters =
+        [
             new Character
             {
                 Id = new Guid("56e301cf-1db1-4808-a6e3-1b43f9513953"),
@@ -197,7 +203,11 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
                 Description = "A former arena fighter who now frees captives and hunted outcasts."
-            });
+            }
+        ];
+
+        foreach (var character in characters) character.SettlementId = settlementId.Value;
+        context.Characters.AddRange(characters);
 
         await context.SaveChangesAsync();
     }

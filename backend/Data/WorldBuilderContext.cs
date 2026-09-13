@@ -15,5 +15,10 @@ public class WorldBuilderContext(DbContextOptions<WorldBuilderContext> options) 
             .HasOne(settlement => settlement.World)
             .WithMany(world => world.Settlements)
             .HasForeignKey(settlement => settlement.WorldId);
+
+        modelBuilder.Entity<Character>()
+            .HasOne(character => character.Settlement)
+            .WithMany(settlement => settlement.Characters)
+            .HasForeignKey(character => character.SettlementId);
     }
 }

@@ -11,4 +11,5 @@ public class Settlement
     public int Population { get; set; }
     public Guid WorldId { get; set; }
     public required World World { get; set; }
+    public ICollection<Character> Characters { get; set; } = [];
 }
