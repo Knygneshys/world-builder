@@ -50,7 +50,8 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Settlement>> Create(SettlementDto request)
     {
-        if (IsInvalid(request) || !await context.Worlds.AnyAsync(world => world.Id == request.WorldId))
+        var isWorldInDatabase = await context.Worlds.AnyAsync(world => world.Id == request.WorldId);
+        if (IsInvalid(request) || !isWorldInDatabase)
             return UnprocessableEntity();
 
         var settlement = new Settlement
