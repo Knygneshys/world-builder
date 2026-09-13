@@ -19,6 +19,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<WorldBuilderContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.AddScoped<ISeeder, WorldSeeder>();
 builder.Services.AddScoped<ISeeder, CharacterSeeder>();
 builder.Services.AddScoped<ApplicationSeeder>();
 
