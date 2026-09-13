@@ -10,10 +10,13 @@ public class CharacterSeeder : ISeeder
     {
         if (await context.Characters.AnyAsync()) return;
 
-        var settlementId = await context.Settlements
-            .Select(settlement => (Guid?)settlement.Id)
-            .FirstOrDefaultAsync();
-        if (settlementId is null) return;
+        Guid[] settlementIds =
+        [
+            new("92cd7639-fd42-4003-b09b-d94fdbf70be5"),
+            new("2ac6bbdc-aea7-4100-8b2c-9205c1f8f8f6"),
+            new("602ea5d0-7811-4c79-a96c-a27ec45c20a2"),
+            new("61d482d0-e55a-40db-9276-0fc9df8e40c1")
+        ];
 
         Character[] characters =
         [
@@ -203,12 +206,81 @@ public class CharacterSeeder : ISeeder
                 Gender = Gender.Female,
                 Alignment = Alignment.ChaoticGood,
                 Description = "A former arena fighter who now frees captives and hunted outcasts."
+            },
+            new Character
+            {
+                Id = new Guid("287ca66c-83c8-4502-8d8d-12f33bc343a3"),
+                Name = "Ilyra Ashveil",
+                Alias = "Cinder Seer",
+                Species = Species.Tiefling,
+                Age = 46,
+                Gender = Gender.Female,
+                Alignment = Alignment.TrueNeutral,
+                Description = "A fire-reader who warns travelers when the ash fields are about to shift."
+            },
+            new Character
+            {
+                Id = new Guid("bb8a83fd-46ba-4897-98ad-bf1f1871f666"),
+                Name = "Doran Flint",
+                Alias = null,
+                Species = Species.Human,
+                Age = 58,
+                Gender = Gender.Male,
+                Alignment = Alignment.LawfulGood,
+                Description = "A watch captain who keeps the fortress gates open to refugees."
+            },
+            new Character
+            {
+                Id = new Guid("a9902f1b-0ae1-46f9-bf15-fab2043d592c"),
+                Name = "Elaris Prismheart",
+                Alias = "Brightsong",
+                Species = Species.Elf,
+                Age = 164,
+                Gender = Gender.Androgynous,
+                Alignment = Alignment.NeutralGood,
+                Description = "A crystal singer who repairs fractures in the forest with resonant hymns."
+            },
+            new Character
+            {
+                Id = new Guid("ccdf42f5-8c28-4a5b-a121-e39588043edb"),
+                Name = "Mira Vell",
+                Alias = "Silverhand",
+                Species = Species.HalfElf,
+                Age = 39,
+                Gender = Gender.Female,
+                Alignment = Alignment.ChaoticNeutral,
+                Description = "A diplomat who carries unofficial messages between rival moonlit courts."
+            },
+            new Character
+            {
+                Id = new Guid("bfb9827e-ab01-433b-bc35-f5427118ef10"),
+                Name = "Korren Mossback",
+                Alias = null,
+                Species = Species.HalfOrc,
+                Age = 44,
+                Gender = Gender.Male,
+                Alignment = Alignment.TrueNeutral,
+                Description = "A marsh guide who can find firm ground where maps show only water."
+            },
+            new Character
+            {
+                Id = new Guid("a34d8918-a57d-4c99-95b9-7eed74aca059"),
+                Name = "Tessa Brassbolt",
+                Alias = "Sparks",
+                Species = Species.Gnome,
+                Age = 71,
+                Gender = Gender.Female,
+                Alignment = Alignment.ChaoticGood,
+                Description = "A railway mechanic who turns discarded machine parts into rescue tools."
             }
         ];
 
-        foreach (var character in characters) character.SettlementId = settlementId.Value;
-        context.Characters.AddRange(characters);
+        for (var i = 0; i < characters.Length; i++)
+        {
+            characters[i].SettlementId = settlementIds[i < 3 ? 0 : i < 7 ? 1 : i < 12 ? 2 : 3];
+        }
 
+        context.Characters.AddRange(characters);
         await context.SaveChangesAsync();
     }
 }
