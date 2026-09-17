@@ -25,4 +25,5 @@ Sistema susideda iš:
 -	Frontend – Next.js
 -	Backend – ASP.NET kartu su SQL Server duomenų baze
 ## Diegimo diagrama
-<img width="1568" height="814" alt="image" src="https://github.com/user-attachments/assets/8d0a6d88-0ed0-4fb2-a95d-5057357cd246" />
+<img width="1638" height="914" alt="image" src="https://github.com/user-attachments/assets/dc0729e7-5adf-4bd7-a293-45e1614a819e" />
+
