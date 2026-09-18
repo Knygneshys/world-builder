@@ -29,9 +29,10 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<WorldResponseDto>> Get(Guid id)
     {
-        var world = await context.Worlds.AsNoTracking()
-            .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
-            .FirstOrDefaultAsync(world => world.Id == id);
+        var world = await context.Worlds
+          .Where(world => world.Id == id)
+          .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
+          .FirstOrDefaultAsync();
 
         return world is null ? NotFound() : Ok(world);
     }
@@ -99,7 +100,10 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     {
         var world = await context.Worlds.FindAsync(id);
         if (world is null) return NotFound();
-
+        
+        if (await context.Settlements.AnyAsync(s => s.WorldId == id))
+            return Conflict("Cannot delete a world that has settlements.");
+        
         context.Worlds.Remove(world);
         await context.SaveChangesAsync();
         return NoContent();

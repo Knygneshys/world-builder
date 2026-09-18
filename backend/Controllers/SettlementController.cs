@@ -48,7 +48,8 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SettlementResponseDto>> Get(Guid id)
     {
-        var settlement = await context.Settlements.AsNoTracking()
+        var settlement = await context.Settlements
+            .Where(settlement => settlement.Id == id)
             .Select(settlement => new SettlementResponseDto(
                 settlement.Id,
                 settlement.Name,
@@ -56,7 +57,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
                 settlement.Description,
                 settlement.Population,
                 settlement.World.Name))
-            .FirstOrDefaultAsync(settlement => settlement.Id == id);
+            .FirstOrDefaultAsync();
 
         return settlement is null ? NotFound() : Ok(settlement);
     }
@@ -144,6 +145,9 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     {
         var settlement = await context.Settlements.FindAsync(id);
         if (settlement is null) return NotFound();
+        
+        if (await context.Characters.AnyAsync(c => c.SettlementId == id))
+            return Conflict("Cannot delete a settlement that has characters.");
 
         context.Settlements.Remove(settlement);
         await context.SaveChangesAsync();

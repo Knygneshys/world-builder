@@ -54,7 +54,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CharacterResponseDto>> Get(Guid id)
     {
-        var character = await context.Characters.AsNoTracking()
+        var character = await context.Characters
+            .Where(character => character.Id == id)
             .Select(character => new CharacterResponseDto(
                 character.Id,
                 character.Name,
@@ -65,7 +66,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
                 character.Alignment,
                 character.Description,
                 character.Settlement.Name))
-            .FirstOrDefaultAsync(character => character.Id == id);
+            .FirstOrDefaultAsync();
 
         return character is null ? NotFound() : Ok(character);
     }
@@ -79,7 +80,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             .Where(settlement => settlement.Id == request.SettlementId)
             .Select(settlement => settlement.Name)
             .FirstOrDefaultAsync();
-        if (settlementName is null) return UnprocessableEntity();
+        if (settlementName is null) return UnprocessableEntity("Can't create a character without a settlement!");
 
         var character = new Character
         {
@@ -109,7 +110,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             .Where(settlement => settlement.Id == request.SettlementId)
             .Select(settlement => settlement.Name)
             .FirstOrDefaultAsync();
-        if (settlementName is null) return UnprocessableEntity();
+        if (settlementName is null) return UnprocessableEntity("Can't update a character without a settlement!");
 
         var character = await context.Characters.FindAsync(id);
         if (character is null) return NotFound();
