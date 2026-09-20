@@ -1,8 +1,11 @@
+using System.Text;
 using backend.Data;
 using backend.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("WorldBuilder");
@@ -13,6 +16,14 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 Console.WriteLine("WorldBuilder connection string loaded successfully.");
+
+var secretKey = builder.Configuration["Jwt:SecretKey"];
+if(secretKey is null)
+{
+    throw new InvalidOperationException("JWT secret key is not configured.");
+}
+
+Console.WriteLine("JWT secret key loaded successfully.");
 
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
@@ -33,15 +44,19 @@ builder.Services.AddScoped<ISeeder, SettlementSeeder>();
 builder.Services.AddScoped<ISeeder, CharacterSeeder>();
 builder.Services.AddScoped<ApplicationSeeder>();
 
-// builder.Services.AddAuthentication(options =>
-// {
-//     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-// }).AddJwtBearer(options =>
-// {
-//    
-// });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters.ValidIssuer = builder.Configuration["Jwt:Issuer"];
+    options.TokenValidationParameters.ValidAudience = builder.Configuration["Jwt:Audience"];
+    options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+});
+
+builder.Services.AddAuthentication();
 
 var app = builder.Build();
 
@@ -62,4 +77,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+app.UseAuthorization();
+app.UseAuthentication();
 app.Run();
