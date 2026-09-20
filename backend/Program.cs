@@ -2,6 +2,7 @@ using backend.Data;
 using backend.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("WorldBuilder");
@@ -13,16 +14,31 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 Console.WriteLine("WorldBuilder connection string loaded successfully.");
 
-// Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false)));
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<WorldBuilderContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddIdentityCore<IdentityUser>(options => 
+    options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<WorldBuilderContext>();
+
 builder.Services.AddScoped<ISeeder, WorldSeeder>();
 builder.Services.AddScoped<ISeeder, SettlementSeeder>();
 builder.Services.AddScoped<ISeeder, CharacterSeeder>();
 builder.Services.AddScoped<ApplicationSeeder>();
+
+// builder.Services.AddAuthentication(options =>
+// {
+//     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+// }).AddJwtBearer(options =>
+// {
+//    
+// });
 
 var app = builder.Build();
 
