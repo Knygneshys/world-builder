@@ -23,8 +23,10 @@ builder.Services.AddDbContext<WorldBuilderContext>(options =>
 
 builder.Services.AddIdentityCore<IdentityUser>(options => 
     options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<WorldBuilderContext>();
 
+builder.Services.AddScoped<ISeeder, RoleSeeder>();
 builder.Services.AddScoped<ISeeder, WorldSeeder>();
 builder.Services.AddScoped<ISeeder, SettlementSeeder>();
 builder.Services.AddScoped<ISeeder, CharacterSeeder>();
