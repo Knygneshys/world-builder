@@ -2,11 +2,13 @@ using backend.Data;
 using backend.Data.DTOs.Character;
 using backend.Data.DTOs.World;
 using backend.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/worlds")]
 public class WorldController(WorldBuilderContext context) : ControllerBase
