@@ -15,6 +15,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
 {
     private const int PageSize = 10;
 
+    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<WorldResponseDto>>> List([FromQuery] int page = 1)
     {
