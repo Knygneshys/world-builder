@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -37,5 +38,10 @@ public class JwtTokenProvider(
         var tokenHandler = new JsonWebTokenHandler();
         
         return tokenHandler.CreateToken(tokenDescriptor);
+    }
+    
+    public string GenerateRefreshToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
 }

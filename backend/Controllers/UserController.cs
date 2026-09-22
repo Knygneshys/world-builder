@@ -1,6 +1,8 @@
 using backend.Auth;
 using backend.Data;
+using backend.Data.DTOs.Auth;
 using backend.Data.DTOs.User;
+using backend.Data.Entities;
 using backend.Data.Entities.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +50,17 @@ public class UserController(
         
         var accessToken = await jwtTokenProvider.Provide(user);
         
-        return Ok(new { accessToken });
+        var refreshToken = new RefreshToken()
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Token = jwtTokenProvider.GenerateRefreshToken(),
+            ExpiresOnUtc = DateTime.UtcNow.AddDays(7)
+        };
+        
+        await dbContext.RefreshTokens.AddAsync(refreshToken);
+        await dbContext.SaveChangesAsync();
+        
+        return Ok(new LoginResponse(accessToken, refreshToken.Token));
     }
 }
