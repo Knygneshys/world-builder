@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using backend.Auth;
 using backend.Data;
 using backend.Data.DTOs.Character;
 using backend.Data.DTOs.World;
@@ -99,6 +100,8 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
         var world = await context.Worlds.Include(world => world.Creator)
             .FirstOrDefaultAsync(world => world.Id == id);
         if (world is null) return NotFound();
+        if (!AuthUtils.IsAdmin(User) && world.CreatorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            return Forbid();
 
         world.Name = request.Name.Trim();
         world.Description = request.Description.Trim();
@@ -112,6 +115,8 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     {
         var world = await context.Worlds.FindAsync(id);
         if (world is null) return NotFound();
+        if (!AuthUtils.IsAdmin(User) && world.CreatorId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            return Forbid();
         
         if (await context.Settlements.AnyAsync(s => s.WorldId == id))
             return Conflict("Cannot delete a world that has settlements.");
