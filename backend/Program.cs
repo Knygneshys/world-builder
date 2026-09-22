@@ -1,4 +1,5 @@
 using System.Text;
+using backend.Auth;
 using backend.Data;
 using backend.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,8 @@ builder.Services.AddIdentityCore<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<WorldBuilderContext>();
+
+builder.Services.AddScoped<JwtTokenProvider>();
 
 builder.Services.AddScoped<ISeeder, RoleSeeder>();
 builder.Services.AddScoped<ISeeder, UserSeeder>();
