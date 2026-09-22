@@ -40,7 +40,7 @@ public class JwtTokenProvider(
         return tokenHandler.CreateToken(tokenDescriptor);
     }
     
-    public string GenerateRefreshToken()
+    public static string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }

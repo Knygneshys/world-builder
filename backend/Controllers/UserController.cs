@@ -6,6 +6,7 @@ using backend.Data.Entities;
 using backend.Data.Entities.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
@@ -54,13 +55,35 @@ public class UserController(
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            Token = jwtTokenProvider.GenerateRefreshToken(),
+            Token = JwtTokenProvider.GenerateRefreshToken(),
             ExpiresOnUtc = DateTime.UtcNow.AddDays(7)
         };
         
         await dbContext.RefreshTokens.AddAsync(refreshToken);
         await dbContext.SaveChangesAsync();
         
+        return Ok(new LoginResponse(accessToken, refreshToken.Token));
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken(RefreshRequest request)
+    {
+        var refreshToken = await dbContext.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == request.RefreshToken);
+        
+        if(refreshToken is null || refreshToken.ExpiresOnUtc < DateTime.UtcNow)
+        {
+            return Unauthorized("Invalid or expired refresh token.");
+        }
+        
+        var accessToken = await jwtTokenProvider.Provide(refreshToken.User);
+        
+        refreshToken.Token = JwtTokenProvider.GenerateRefreshToken();
+        refreshToken.ExpiresOnUtc = DateTime.UtcNow.AddDays(7);
+        
+        await dbContext.SaveChangesAsync();
+
         return Ok(new LoginResponse(accessToken, refreshToken.Token));
     }
 }
