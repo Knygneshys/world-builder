@@ -40,6 +40,8 @@ builder.Services.AddIdentityCore<IdentityUser>(options =>
 
 builder.Services.AddScoped<JwtTokenProvider>();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<ISeeder, RoleSeeder>();
 builder.Services.AddScoped<ISeeder, UserSeeder>();
 builder.Services.AddScoped<ISeeder, WorldSeeder>();

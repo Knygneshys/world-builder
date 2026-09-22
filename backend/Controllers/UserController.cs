@@ -86,4 +86,19 @@ public class UserController(
 
         return Ok(new LoginResponse(accessToken, refreshToken.Token));
     }
+    
+    [HttpDelete("{userId}/logout")]
+    public async Task<IActionResult> Logout(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        
+        if(user == null)
+        {
+            return NotFound("User not found.");
+        }
+        
+        await jwtTokenProvider.RevokeRefreshToken(userId);
+
+        return Ok();
+    }
 }

@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using backend.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -9,7 +11,9 @@ namespace backend.Auth;
 
 public class JwtTokenProvider(
     UserManager<IdentityUser> userManager,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    WorldBuilderContext dbContext,
+    IHttpContextAccessor httpContextAccessor)
 {
     public async Task<string> Provide(IdentityUser user)
     {
@@ -43,5 +47,24 @@ public class JwtTokenProvider(
     public static string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    }
+    
+    public async Task<bool> RevokeRefreshToken(string userId)
+    {
+        if(userId != GetCurrentUserId())
+        {
+            throw new ApplicationException("You can't do this.");
+        }
+        
+        await dbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId)
+            .ExecuteDeleteAsync();
+        
+        return true;
+    }
+
+    private string? GetCurrentUserId()
+    {
+        return httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }
