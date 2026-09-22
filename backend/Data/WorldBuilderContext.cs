@@ -9,6 +9,7 @@ public class WorldBuilderContext(DbContextOptions<WorldBuilderContext> options) 
     public DbSet<World> Worlds => Set<World>();
     public DbSet<Settlement> Settlements => Set<Settlement>();
     public DbSet<Character> Characters => Set<Character>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
