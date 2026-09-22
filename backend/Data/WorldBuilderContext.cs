@@ -15,6 +15,12 @@ public class WorldBuilderContext(DbContextOptions<WorldBuilderContext> options) 
     {
         base.OnModelCreating(modelBuilder);
         
+        modelBuilder.Entity<World>()
+            .HasOne(world => world.Creator)
+            .WithMany()
+            .HasForeignKey(world => world.CreatorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Settlement>()
             .HasOne(settlement => settlement.World)
             .WithMany(world => world.Settlements)

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using backend.Data;
 using backend.Data.DTOs.Character;
 using backend.Data.DTOs.World;
@@ -25,7 +26,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
             .OrderBy(world => world.Name)
             .Skip((page - 1) * PageSize)
             .Take(PageSize)
-            .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
+            .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description, world.Creator.UserName!))
             .ToListAsync());
     }
 
@@ -34,7 +35,7 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     {
         var world = await context.Worlds
           .Where(world => world.Id == id)
-          .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description))
+          .Select(world => new WorldResponseDto(world.Id, world.Name, world.Description, world.Creator.UserName!))
           .FirstOrDefaultAsync();
 
         return world is null ? NotFound() : Ok(world);
@@ -70,9 +71,16 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
+        var creatorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(creatorId)) return Unauthorized();
+        var creator = await context.Users.FindAsync(creatorId);
+        if (creator is null) return Unauthorized();
+
         var world = new World
         {
             Id = Guid.NewGuid(),
+            CreatorId = creatorId,
+            Creator = creator,
             Name = request.Name.Trim(),
             Description = request.Description.Trim()
         };
@@ -88,7 +96,8 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
     {
         if (IsInvalid(request)) return UnprocessableEntity();
 
-        var world = await context.Worlds.FindAsync(id);
+        var world = await context.Worlds.Include(world => world.Creator)
+            .FirstOrDefaultAsync(world => world.Id == id);
         if (world is null) return NotFound();
 
         world.Name = request.Name.Trim();
@@ -117,5 +126,5 @@ public class WorldController(WorldBuilderContext context) : ControllerBase
         string.IsNullOrWhiteSpace(request.Description);
 
     private static WorldResponseDto ToResponse(World world) =>
-        new(world.Id, world.Name, world.Description);
+        new(world.Id, world.Name, world.Description, world.Creator.UserName!);
 }
