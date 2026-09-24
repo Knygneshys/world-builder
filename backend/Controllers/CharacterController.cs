@@ -1,17 +1,25 @@
+using System.Security.Claims;
+using backend.Auth;
 using backend.Data;
 using backend.Data.DTOs.Character;
 using backend.Data.Entities;
 using backend.Data.Entities.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/characters")]
 public class CharacterController(WorldBuilderContext context) : ControllerBase
 {
     private const int PageSize = 10;
+
+    private IQueryable<Character> AccessibleCharacters => context.Characters
+        .Where(character => AuthUtils.IsAdmin(User) ||
+            character.Settlement.World.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier));
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CharacterResponseDto>>> List(
@@ -28,7 +36,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
             return BadRequest();
         }
 
-        var query = context.Characters.AsNoTracking();
+        var query = AccessibleCharacters.AsNoTracking();
 
         if (species.HasValue) query = query.Where(character => character.Species == species);
         if (gender.HasValue) query = query.Where(character => character.Gender == gender);
@@ -54,7 +62,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CharacterResponseDto>> Get(Guid id)
     {
-        var character = await context.Characters
+        var character = await AccessibleCharacters
             .Where(character => character.Id == id)
             .Select(character => new CharacterResponseDto(
                 character.Id,
@@ -77,7 +85,8 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         if (IsInvalid(request)) return UnprocessableEntity();
 
         var settlementName = await context.Settlements
-            .Where(settlement => settlement.Id == request.SettlementId)
+            .Where(settlement => settlement.Id == request.SettlementId &&
+                (AuthUtils.IsAdmin(User) || settlement.World.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier)))
             .Select(settlement => settlement.Name)
             .FirstOrDefaultAsync();
         if (settlementName is null) return UnprocessableEntity("Can't create a character without a settlement!");
@@ -107,12 +116,13 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
         if (IsInvalid(request)) return UnprocessableEntity();
 
         var settlementName = await context.Settlements
-            .Where(settlement => settlement.Id == request.SettlementId)
+            .Where(settlement => settlement.Id == request.SettlementId &&
+                (AuthUtils.IsAdmin(User) || settlement.World.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier)))
             .Select(settlement => settlement.Name)
             .FirstOrDefaultAsync();
         if (settlementName is null) return UnprocessableEntity("Can't update a character without a settlement!");
 
-        var character = await context.Characters.FindAsync(id);
+        var character = await AccessibleCharacters.FirstOrDefaultAsync(character => character.Id == id);
         if (character is null) return NotFound();
 
         character.Name = request.Name.Trim();
@@ -131,7 +141,7 @@ public class CharacterController(WorldBuilderContext context) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var character = await context.Characters.FindAsync(id);
+        var character = await AccessibleCharacters.FirstOrDefaultAsync(character => character.Id == id);
         if (character is null) return NotFound();
 
         context.Characters.Remove(character);

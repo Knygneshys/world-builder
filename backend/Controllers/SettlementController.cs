@@ -1,17 +1,25 @@
+using System.Security.Claims;
+using backend.Auth;
 using backend.Data;
 using backend.Data.DTOs.Settlement;
 using backend.Data.Entities;
 using backend.Data.Entities.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/settlements")]
 public class SettlementController(WorldBuilderContext context) : ControllerBase
 {
     private const int PageSize = 10;
+
+    private IQueryable<Settlement> AccessibleSettlements => context.Settlements
+        .Where(settlement => AuthUtils.IsAdmin(User) ||
+            settlement.World.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier));
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SettlementResponseDto>>> List(
@@ -26,7 +34,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
             return BadRequest();
         }
 
-        var query = context.Settlements.AsNoTracking();
+        var query = AccessibleSettlements.AsNoTracking();
 
         if (type.HasValue) query = query.Where(settlement => settlement.Type == type);
         if (population.HasValue) query = query.Where(settlement => settlement.Population == population);
@@ -48,7 +56,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<SettlementResponseDto>> Get(Guid id)
     {
-        var settlement = await context.Settlements
+        var settlement = await AccessibleSettlements
             .Where(settlement => settlement.Id == id)
             .Select(settlement => new SettlementResponseDto(
                 settlement.Id,
@@ -65,7 +73,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     [HttpGet("{id:guid}/predominant-species")]
     public async Task<ActionResult<PredominantSpeciesResponseDto>> GetPredominantSpecies(Guid id)
     {
-        var cityName = await context.Settlements.AsNoTracking()
+        var cityName = await AccessibleSettlements.AsNoTracking()
             .Where(settlement => settlement.Id == id)
             .Select(settlement => settlement.Name)
             .FirstOrDefaultAsync();
@@ -94,7 +102,8 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         if (IsInvalid(request)) return UnprocessableEntity();
 
         var worldName = await context.Worlds
-            .Where(world => world.Id == request.WorldId)
+            .Where(world => world.Id == request.WorldId &&
+                (AuthUtils.IsAdmin(User) || world.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier)))
             .Select(world => world.Name)
             .FirstOrDefaultAsync();
         if (worldName is null) return UnprocessableEntity();
@@ -122,12 +131,13 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
         if (IsInvalid(request)) return UnprocessableEntity();
 
         var worldName = await context.Worlds
-            .Where(world => world.Id == request.WorldId)
+            .Where(world => world.Id == request.WorldId &&
+                (AuthUtils.IsAdmin(User) || world.CreatorId == User.FindFirstValue(ClaimTypes.NameIdentifier)))
             .Select(world => world.Name)
             .FirstOrDefaultAsync();
         if (worldName is null) return UnprocessableEntity();
 
-        var settlement = await context.Settlements.FindAsync(id);
+        var settlement = await AccessibleSettlements.FirstOrDefaultAsync(settlement => settlement.Id == id);
         if (settlement is null) return NotFound();
 
         settlement.Name = request.Name.Trim();
@@ -143,7 +153,7 @@ public class SettlementController(WorldBuilderContext context) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var settlement = await context.Settlements.FindAsync(id);
+        var settlement = await AccessibleSettlements.FirstOrDefaultAsync(settlement => settlement.Id == id);
         if (settlement is null) return NotFound();
         
         if (await context.Characters.AnyAsync(c => c.SettlementId == id))
